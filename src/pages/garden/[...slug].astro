@@ -1,0 +1,19 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { getPublished, stageLabel } from '../../utils/content';
+
+export async function getStaticPaths() {
+  return (await getPublished('garden')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+const { data } = entry;
+---
+<ArticleLayout title={data.title} description={data.description} section="知识花园" activeNav="garden"
+  date={data.updatedDate} dateIsUpdate tags={data.tags} example={data.example} headings={headings}
+  features={remarkPluginFrontmatter.readingFeatures}>
+  <span slot="meta">{stageLabel[data.stage]}</span>
+  <Content />
+</ArticleLayout>

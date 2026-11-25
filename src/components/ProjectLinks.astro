@@ -1,0 +1,13 @@
+---
+interface Props {
+  link?: string;
+  repo?: string;
+}
+const { link, repo } = Astro.props;
+---
+{(link || repo) && (
+  <div class="project-links">
+    {link && <a href={link} target="_blank" rel="noopener noreferrer">访问站点 ↗</a>}
+    {repo && <a href={repo} target="_blank" rel="noopener noreferrer">源码仓库 ↗</a>}
+  </div>
+)}

@@ -1,0 +1,32 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import ProjectLinks from '../../components/ProjectLinks.astro';
+import { getPublished, statusLabel } from '../../utils/content';
+
+export async function getStaticPaths() {
+  return (await getPublished('projects')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+const { data } = entry;
+---
+<ArticleLayout title={data.title} description={data.description} section="项目" activeNav="projects"
+  date={data.pubDate} tags={data.tags} example={data.example} headings={headings}
+  features={remarkPluginFrontmatter.readingFeatures}>
+  <Fragment slot="meta">
+    <span><span class="status-dot" data-status={data.status} aria-hidden="true"></span>{statusLabel[data.status]}</span>
+    {data.featured && <span class="badge badge-featured">精选</span>}
+  </Fragment>
+  <Fragment slot="details">
+    {data.tech.length > 0 && (
+      <ul class="tag-list article-tags" aria-label="技术栈">
+        {data.tech.map((tech) => <li><span class="tag">{tech}</span></li>)}
+      </ul>
+    )}
+    <ProjectLinks link={data.link} repo={data.repo} />
+  </Fragment>
+  {data.cover && <Image src={data.cover} alt={data.coverAlt ?? ''} priority />}
+  <Content />
+</ArticleLayout>

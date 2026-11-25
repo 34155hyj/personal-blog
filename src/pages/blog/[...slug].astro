@@ -1,0 +1,21 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import ArticleNavigation from '../../components/ArticleNavigation.astro';
+import { getArticlePaths, indexHref } from '../../utils/content';
+
+export async function getStaticPaths() {
+  return getArticlePaths('blog');
+}
+const { entry, newer, older } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+const { data } = entry;
+---
+<ArticleLayout title={data.title} description={data.description} section="博客" activeNav="blog"
+  date={data.pubDate} updated={data.updatedDate} tags={data.tags} example={data.example} headings={headings}
+  category={data.category} categoryUrl={indexHref('categories', data.category)}
+  features={remarkPluginFrontmatter.readingFeatures}>
+  {data.featured && <span slot="meta" class="badge badge-featured">精选</span>}
+  <Content />
+  {(newer || older) && <ArticleNavigation slot="footer" collection="blog" newer={newer} older={older} />}
+</ArticleLayout>

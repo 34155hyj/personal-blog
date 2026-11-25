@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllContent, getAllTags, indexParam } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+  return tags.map(({ tag }) => ({ params: { tag: indexParam(tag) }, props: { tag } }));
+}
+
+const { tag } = Astro.props;
+const items = (await getAllContent()).filter((item) => item.tags.includes(tag));
+---
+
+<BaseLayout title={`#${tag}`} description={`标签「${tag}」下的全部内容。`} activeNav="">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">#{tag}</h1>
+      <p class="page-description">共 {items.length} 条内容。</p>
+      <p class="small"><a href="/tags/">← 返回全部标签</a></p>
+    </header>
+
+    <div class="card-grid">
+      {items.map((item) => <PostCard item={item} />)}
+    </div>
+  </div>
+</BaseLayout>

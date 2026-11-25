@@ -1,0 +1,53 @@
+---
+interface Props {
+  headings: Array<{ depth: number; slug: string; text: string }>;
+}
+const { headings } = Astro.props;
+---
+<nav class="toc" aria-label="文章目录">
+  <p class="toc-title">目录</p>
+  <ol>
+    {headings.map(({ depth, slug, text }) => (
+      <li class={`depth-${depth}`}><a href={`#${encodeURIComponent(slug)}`} data-toc-link={slug}>{text}</a></li>
+    ))}
+  </ol>
+</nav>
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')];
+  const headings = [...document.querySelectorAll<HTMLElement>('.prose h2[id], .prose h3[id]')];
+  let scheduled = false;
+  let active: string | undefined;
+  const mobileToc = document.querySelector('.toc-mobile');
+
+  function syncHeading() {
+    scheduled = false;
+    const readingLine = (document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0) + 48;
+    const bottom = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    const visible = (bottom
+      ? headings.at(-1)
+      : headings.findLast((heading) => heading.getBoundingClientRect().top <= readingLine))?.id;
+    if (visible === active) return;
+    active = visible;
+    for (const link of links) {
+      if (link.dataset.tocLink === active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+  }
+
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(syncHeading);
+  }
+
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule);
+  window.addEventListener('hashchange', schedule);
+  mobileToc?.addEventListener('click', (event) => {
+    if (event.target instanceof Element && event.target.closest('[data-toc-link]')) {
+      mobileToc.removeAttribute('open');
+    }
+  });
+  syncHeading();
+</script>

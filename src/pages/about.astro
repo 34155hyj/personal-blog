@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="关于" description="数字花园的内容与维护方式。" activeNav="about">
+  <div class="container article-layout">
+    <article class="article">
+      <header class="page-header">
+        <h1 class="page-title">关于这个花园</h1>
+        <p class="page-description">一处用来回看阅读记录、研究方法与个人项目的笔记站。</p>
+      </header>
+      <div class="prose">
+        <h2>这里有什么</h2>
+        <ul>
+          <li><a href="/blog/">博客</a>收录相对完整的文章。</li>
+          <li><a href="/notes/">科研笔记</a>记录论文阅读、方法和还待验证的问题。</li>
+          <li><a href="/garden/">知识花园</a>保留持续修订的概念卡片。</li>
+          <li><a href="/projects/">项目</a>记录工具的用途、技术选型和进度。</li>
+        </ul>
+        <h2>如何跟进更新</h2>
+        <p>可以通过<a href="/archive/">归档</a>浏览旧条目，也可以在阅读器中订阅 <a href="/rss.xml">RSS</a>。</p>
+      </div>
+    </article>
+  </div>
+</BaseLayout>

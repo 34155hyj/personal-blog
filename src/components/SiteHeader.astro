@@ -1,0 +1,66 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  activeNav?: string;
+}
+
+const { activeNav = '' } = Astro.props;
+
+const nav = [
+  { href: '/', label: '首页', key: 'home' },
+  { href: '/blog/', label: '博客', key: 'blog' },
+  { href: '/notes/', label: '科研笔记', key: 'notes' },
+  { href: '/projects/', label: '项目', key: 'projects' },
+  { href: '/garden/', label: '知识花园', key: 'garden' },
+  { href: '/about/', label: '关于', key: 'about' },
+];
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="Digital Garden 首页">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="var(--accent)"></rect>
+        <path d="M32 50V30" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+        <path d="M32 34C22 34 16 27 16 18c10 0 16 7 16 16Z" fill="rgba(255,255,255,0.9)"></path>
+        <path d="M32 40c10 0 16-7 16-16-10 0-16 7-16 16Z" fill="rgba(255,255,255,0.65)"></path>
+      </svg>
+      <span>Digital Garden</span>
+    </a>
+
+    <div class="header-actions">
+      <nav class="desktop-nav" aria-label="主导航">
+        {
+          nav.map((item) => (
+            <a href={item.href} aria-current={activeNav === item.key ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <a href="/search/" class="icon-button search-link" aria-label="全文搜索" title="全文搜索" aria-current={activeNav === 'search' ? 'page' : undefined}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+      </a>
+      <ThemeToggle />
+
+      <details class="mobile-nav">
+        <summary class="icon-button" aria-label="打开导航菜单" title="导航菜单">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
+          </svg>
+        </summary>
+        <nav class="mobile-menu" aria-label="移动端导航">
+          {
+            nav.map((item) => (
+              <a href={item.href} aria-current={activeNav === item.key ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

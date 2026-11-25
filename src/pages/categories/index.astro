@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllCategories, indexHref } from '../../utils/content';
+
+const categories = await getAllCategories();
+---
+
+<BaseLayout title="分类" description="按分类浏览全站内容。" activeNav="">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">分类</h1>
+      <p class="page-description">按分类浏览博客、科研笔记、知识卡片和项目。</p>
+    </header>
+
+    {
+      categories.length > 0 ? (
+        <div class="list-group">
+          {categories.map(({ category, count }) => (
+            <a class="list-item" href={indexHref('categories', category)}>
+              <h2 class="list-item-title">{category}</h2>
+              <span class="muted small">{count} 条内容</span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="muted">还没有分类。</p>
+      )
+    }
+  </div>
+</BaseLayout>

@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllContent } from '../../utils/content';
+
+const all = await getAllContent();
+const posts = all.filter((item) => item.collection === 'blog');
+---
+
+<BaseLayout title="博客" description="博客文章列表：思考、教程与知识整理。" activeNav="blog">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">博客</h1>
+      <p class="page-description">相对完整的文章。会修订，也会补充，按更新时间排列。</p>
+    </header>
+
+    {posts.length > 0 ? (
+      <div class="card-grid">
+        {posts.map((item) => <PostCard item={item} />)}
+      </div>
+    ) : (
+      <p class="muted">还没有文章。在 <code>src/content/blog/</code> 下新建 Markdown 文件即可。</p>
+    )}
+  </div>
+</BaseLayout>

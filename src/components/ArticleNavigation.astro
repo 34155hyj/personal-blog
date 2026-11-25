@@ -1,0 +1,16 @@
+---
+interface Neighbor {
+  id: string;
+  data: { title: string };
+}
+interface Props {
+  collection: 'blog' | 'notes';
+  newer?: Neighbor;
+  older?: Neighbor;
+}
+const { collection, newer, older } = Astro.props;
+---
+<nav class="article-navigation" aria-label="相邻篇目">
+  {newer && <a href={`/${collection}/${newer.id}/`}><span>← 更新一篇</span>{newer.data.title}</a>}
+  {older && <a href={`/${collection}/${older.id}/`}><span>更早一篇 →</span>{older.data.title}</a>}
+</nav>

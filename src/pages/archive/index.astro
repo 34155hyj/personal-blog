@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { groupByYear, formatDate, collectionLabel } from '../../utils/content';
+
+const groups = await groupByYear();
+const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+---
+
+<BaseLayout title="归档" description="按年份浏览全站内容。" activeNav="">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">归档</h1>
+      <p class="page-description">全部 {total} 条内容，按年份倒序。</p>
+    </header>
+
+    {
+      groups.map((group) => (
+        <section class="year-group" aria-labelledby={`year-${group.year}`}>
+          <div class="year-heading">
+            <h2 id={`year-${group.year}`} class="year-number">{group.year}</h2>
+            <span class="muted small">{group.items.length} 条</span>
+          </div>
+          <div>
+            {group.items.map((item) => (
+              <div class="archive-row">
+                <time class="archive-date" datetime={item.date.toISOString()}>{formatDate(item.date)}</time>
+                <a href={item.url}>{item.title}</a>
+                <span class="badge">{collectionLabel(item.collection)}</span>
+                {item.example && <span class="badge badge-example">示例</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>

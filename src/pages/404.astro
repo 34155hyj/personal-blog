@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="页面不存在" description="你访问的页面不存在。" noindex>
+  <div class="container not-found">
+    <p class="not-found-code">404</p>
+    <h1 class="page-title">这片地还没种东西</h1>
+    <p class="page-description" style="margin-inline: auto;">
+      你访问的页面不存在，可能已经改名或被移走了。
+    </p>
+    <div class="hero-actions" style="justify-content: center; margin-top: 1.5rem;">
+      <a class="button button-primary" href="/">回到首页</a>
+      <a class="button" href="/archive/">看看归档</a>
+    </div>
+  </div>
+</BaseLayout>

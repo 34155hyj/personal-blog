@@ -1,0 +1,29 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, statusLabel } from '../utils/content';
+import ProjectLinks from './ProjectLinks.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  heading?: 'h2' | 'h3';
+}
+const { project, heading: Heading = 'h2' } = Astro.props;
+const { data } = project;
+---
+<article class="card project-card">
+  {data.cover && <Image class="project-cover" src={data.cover} alt={data.coverAlt ?? ''} widths={[320, 480, 720]} sizes="(max-width: 560px) 90vw, (max-width: 920px) 45vw, 350px" />}
+  <div class="card-meta">
+    <span><span class="status-dot" data-status={data.status} aria-hidden="true"></span>{statusLabel[data.status]}</span>
+    <time datetime={formatDate(data.pubDate)}>{formatDate(data.pubDate)}</time>
+    {data.example && <span class="badge badge-example">示例</span>}
+  </div>
+  <Heading class="card-title"><a href={`/projects/${project.id}/`}>{data.title}</a></Heading>
+  <p class="card-description">{data.description}</p>
+  {data.tech.length > 0 && (
+    <ul class="tag-list" aria-label="技术栈">
+      {data.tech.map((tech) => <li><span class="tag">{tech}</span></li>)}
+    </ul>
+  )}
+  <ProjectLinks link={data.link} repo={data.repo} />
+</article>

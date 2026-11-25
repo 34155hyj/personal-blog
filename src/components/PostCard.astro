@@ -1,0 +1,27 @@
+---
+import type { ContentItem } from '../utils/content';
+import { formatDate, collectionLabel } from '../utils/content';
+import TagList from './TagList.astro';
+
+interface Props {
+  item: ContentItem;
+  heading?: 'h2' | 'h3';
+}
+
+const { item, heading: Heading = 'h2' } = Astro.props;
+---
+
+<article class="card">
+  <div class="card-meta">
+    <time datetime={formatDate(item.updatedDate ?? item.date)}>{formatDate(item.updatedDate ?? item.date)}</time>
+    <span aria-hidden="true">·</span>
+    <span>{collectionLabel(item.collection)}</span>
+    {item.featured && <span class="badge badge-featured">精选</span>}
+    {item.example && <span class="badge badge-example">示例</span>}
+  </div>
+  <Heading class="card-title"><a href={item.url}>{item.title} <span aria-hidden="true">↗</span></a></Heading>
+  <p class="card-description">{item.description}</p>
+  <div class="card-footer">
+    <TagList tags={item.tags.slice(0, 3)} />
+  </div>
+</article>

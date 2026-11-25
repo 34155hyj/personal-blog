@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllCategories, getAllContent, indexParam } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories();
+  return categories.map(({ category }) => ({ params: { category: indexParam(category) }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const items = (await getAllContent()).filter((item) => item.category === category);
+---
+
+<BaseLayout title={category} description={`分类「${category}」下的全部内容。`} activeNav="">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">{category}</h1>
+      <p class="page-description">共 {items.length} 条内容。</p>
+      <p class="small"><a href="/categories/">← 返回全部分类</a></p>
+    </header>
+
+    <div class="card-grid">
+      {items.map((item) => <PostCard item={item} />)}
+    </div>
+  </div>
+</BaseLayout>

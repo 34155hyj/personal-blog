@@ -1,0 +1,81 @@
+<script>
+  const diagrams = Array.from(document.querySelectorAll<HTMLPreElement>('pre[data-mermaid]'));
+  if (diagrams.length) {
+    const originals = diagrams.map((source) => ({
+      source,
+      text: [...source.querySelectorAll('.line')].map((line) => line.textContent).join('\n') || source.textContent || '',
+      chart: document.createElement('div'),
+    }));
+    let rendering = false;
+    let renderAgain = false;
+    let engine: ReturnType<typeof loadEngine> | undefined;
+    const loadEngine = () => import('mermaid').then(({ default: mermaid }) => mermaid);
+
+    function fitChart(svg: SVGSVGElement) {
+      const content = svg.getBBox();
+      const viewport = svg.viewBox.baseVal;
+      if (!content.width || !content.height) return;
+      if (content.x >= viewport.x && content.y >= viewport.y &&
+          content.x + content.width <= viewport.x + viewport.width &&
+          content.y + content.height <= viewport.y + viewport.height) return;
+
+      // Measure in the final DOM, where fonts and layout can differ from Mermaid's render container.
+      const padding = 12;
+      const width = content.width + padding * 2;
+      const height = content.height + padding * 2;
+      svg.setAttribute('viewBox', [content.x - padding, content.y - padding, width, height].join(' '));
+      svg.style.maxWidth = `${width}px`;
+    }
+
+    async function renderCharts() {
+      if (rendering) {
+        renderAgain = true;
+        return;
+      }
+      rendering = true;
+      try {
+        const mermaid = await (engine ??= loadEngine());
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          suppressErrorRendering: true,
+          htmlLabels: false,
+          theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'neutral',
+        });
+        for (const [index, { source, text, chart }] of originals.entries()) {
+          try {
+            const { svg } = await mermaid.render(`reading-diagram-${index}`, text);
+            chart.className = 'mermaid-chart';
+            chart.innerHTML = svg;
+            if (!chart.isConnected) source.after(chart);
+            const graphic = chart.querySelector('svg');
+            if (graphic) fitChart(graphic);
+            source.hidden = true;
+          } catch {
+            source.hidden = false;
+            chart.remove();
+          }
+        }
+      } catch {
+        // Rendered Markdown keeps the diagram source available when the module cannot load.
+      } finally {
+        rendering = false;
+        if (renderAgain) {
+          renderAgain = false;
+          void renderCharts();
+        }
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      void renderCharts();
+      new MutationObserver(() => void renderCharts()).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme'],
+      });
+    }, { rootMargin: '300px' });
+    diagrams.forEach((diagram) => observer.observe(diagram));
+  }
+</script>

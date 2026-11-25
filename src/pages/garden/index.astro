@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDate, getPublished, stageLabel } from '../../utils/content';
+
+const stages = ['evergreen', 'sprout', 'seed'] as const;
+
+const entries = (await getPublished('garden')).sort(
+  (a, b) => b.data.updatedDate.getTime() - a.data.updatedDate.getTime(),
+);
+---
+
+<BaseLayout title="知识花园" description="持续修订的知识卡片，按生长阶段组织。" activeNav="garden">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">知识花园</h1>
+      <p class="page-description">这里放小而独立的知识卡片。它们不按发布时间排列，而是按「长到哪了」分组。</p>
+    </header>
+
+    {entries.length === 0 && <p class="muted">暂无知识卡片。</p>}
+    {
+      stages.map((stage) => {
+        const items = entries.filter((entry) => entry.data.stage === stage);
+        return (
+          items.length > 0 && (
+            <section aria-labelledby={`stage-${stage}`}>
+              <h2 id={`stage-${stage}`} class="section-title">
+                {stageLabel[stage]}
+              </h2>
+              <div class="card-grid">
+                {items.map((entry) => (
+                  <article class="card">
+                    <div class="card-meta">
+                      <span>更新于 {formatDate(entry.data.updatedDate)}</span>
+                      {entry.data.example && <span class="badge badge-example">示例</span>}
+                    </div>
+                    <h3 class="card-title">
+                      <a href={`/garden/${entry.id}/`}>{entry.data.title}</a>
+                    </h3>
+                    <p class="card-description">{entry.data.description}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )
+        );
+      })
+    }
+  </div>
+</BaseLayout>

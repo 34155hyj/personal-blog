@@ -1,0 +1,54 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { siteTitle } from '../utils/site.mjs';
+
+interface Props {
+  title: string;
+  description: string;
+  activeNav?: string;
+  noindex?: boolean;
+  article?: boolean;
+  published?: Date;
+}
+const { title, description, activeNav = '', noindex = false, article = false, published } = Astro.props;
+const pageTitle = title === siteTitle ? title : `${title} · ${siteTitle}`;
+const canonical = Astro.site && !noindex ? new URL(Astro.url.pathname, Astro.site) : undefined;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    {(!Astro.site || noindex) && <meta name="robots" content="noindex,follow" />}
+    {canonical && <link rel="canonical" href={canonical.href} />}
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="zh_CN" />
+    {canonical && <meta property="og:url" content={canonical.href} />}
+    {published && <meta property="article:published_time" content={published.toISOString()} />}
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={siteTitle} href="/rss.xml" />
+    <title>{pageTitle}</title>
+    <script is:inline>
+      const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+      let preferredTheme;
+      try { preferredTheme = localStorage.getItem('dg-theme'); } catch {}
+      document.documentElement.dataset.theme = preferredTheme === 'light' || preferredTheme === 'dark'
+        ? preferredTheme
+        : systemTheme.matches ? 'dark' : 'light';
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <SiteHeader activeNav={activeNav} />
+    <main id="main" class="site-main" tabindex="-1"><slot /></main>
+    <SiteFooter />
+  </body>
+</html>

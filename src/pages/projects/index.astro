@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getPublished } from '../../utils/content';
+
+const projects = (await getPublished('projects')).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+---
+<BaseLayout title="项目" description="个人工具与实验性项目，包含进度、技术栈与项目链接。" activeNav="projects">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">项目</h1>
+      <p class="page-description">记录工具和小站点从构想到完成的过程。</p>
+    </header>
+    {projects.length > 0 ? (
+      <div class="card-grid">{projects.map((project) => <ProjectCard project={project} />)}</div>
+    ) : (
+      <p class="muted">暂无项目。</p>
+    )}
+  </div>
+</BaseLayout>

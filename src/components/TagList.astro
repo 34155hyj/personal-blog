@@ -1,0 +1,22 @@
+---
+import { indexHref } from '../utils/content';
+interface Props {
+  tags: string[];
+}
+
+const { tags } = Astro.props;
+---
+
+{
+  tags.length > 0 && (
+    <ul class="tag-list">
+      {tags.map((tag) => (
+        <li>
+          <a class="tag" href={indexHref('tags', tag)}>
+            #{tag}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

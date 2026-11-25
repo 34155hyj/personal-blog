@@ -1,0 +1,64 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import TagList from '../components/TagList.astro';
+import Mermaid from '../components/Mermaid.astro';
+import katexStyles from 'katex/dist/katex.min.css?url';
+import { formatDate, formatDateLong } from '../utils/content';
+
+interface Props {
+  title: string;
+  description: string;
+  section: string;
+  activeNav: string;
+  date: Date;
+  updated?: Date;
+  categoryUrl?: string;
+  category?: string;
+  dateIsUpdate?: boolean;
+  headings: { depth: number; slug: string; text: string }[];
+  tags: string[];
+  example?: boolean;
+  features?: { math?: boolean; mermaid?: boolean };
+}
+const { title, description, section, activeNav, date, updated, categoryUrl, category,
+  dateIsUpdate = false, headings, tags, example, features } = Astro.props;
+const toc = headings.filter(({ depth }) => depth === 2 || depth === 3);
+---
+<BaseLayout title={title} description={description} activeNav={activeNav} published={dateIsUpdate ? undefined : date} article>
+  <Fragment slot="head">
+    {features?.math && <link rel="stylesheet" href={katexStyles} />}
+  </Fragment>
+  <div class:list={['container', 'article-layout', { 'article-with-toc': toc.length }]}>
+    <article class="article" data-pagefind-body>
+      <header class="article-header">
+        <a class="eyebrow" data-pagefind-meta="section" href={`/${activeNav}/`}>{section}</a>
+        <h1 class="article-title" data-pagefind-meta="title">{title}</h1>
+        <p class="article-description">{description}</p>
+        <div class="article-meta">
+          <span>{dateIsUpdate && '更新于 '}<time datetime={formatDate(date)}>{formatDateLong(date)}</time></span>
+          {updated && updated.getTime() !== date.getTime() && (
+            <span>更新于 <time datetime={formatDate(updated)}>{formatDateLong(updated)}</time></span>
+          )}
+          {categoryUrl && <a href={categoryUrl}>{category}</a>}
+          <slot name="meta" />
+          {example && <span class="badge badge-example">示例</span>}
+        </div>
+        {tags.length > 0 && <div class="article-tags"><TagList tags={tags} /></div>}
+        <slot name="details" />
+      </header>
+      {toc.length > 0 && (
+        <details class="toc-mobile" data-pagefind-ignore>
+          <summary>本文目录</summary>
+          <TableOfContents headings={toc} />
+        </details>
+      )}
+      <div class="prose"><slot /></div>
+      {Astro.slots.has('footer') && <footer class="article-footer" data-pagefind-ignore><slot name="footer" /></footer>}
+    </article>
+    {toc.length > 0 && (
+      <aside class="toc-sidebar"><TableOfContents headings={toc} /></aside>
+    )}
+  </div>
+  {features?.mermaid && <Mermaid />}
+</BaseLayout>

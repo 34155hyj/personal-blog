@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllContent } from '../../utils/content';
+
+const all = await getAllContent();
+const notes = all.filter((item) => item.collection === 'notes');
+---
+
+<BaseLayout title="科研笔记" description="论文阅读记录、方法整理与概念笔记。" activeNav="notes">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">科研笔记</h1>
+      <p class="page-description">读过什么、怎么想的、哪里还没弄懂。允许不完整，允许反复修订。</p>
+    </header>
+
+    {notes.length > 0 ? (
+      <div class="card-grid">
+        {notes.map((item) => <PostCard item={item} />)}
+      </div>
+    ) : (
+      <p class="muted">还没有笔记。在 <code>src/content/notes/</code> 下新建 Markdown 文件即可。</p>
+    )}
+  </div>
+</BaseLayout>

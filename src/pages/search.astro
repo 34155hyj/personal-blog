@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="搜索" description="搜索博客、科研笔记、知识卡片与项目的全文。" activeNav="search" noindex>
+  <div class="container search-page">
+    <header class="page-header">
+      <h1 class="page-title">全文搜索</h1>
+      <p class="page-description">搜索博客、科研笔记、知识卡片和项目。</p>
+    </header>
+    <form class="search-form" role="search" action="/search/">
+      <label class="visually-hidden" for="search-query">关键词</label>
+      <input id="search-query" name="q" type="search" placeholder="输入关键词" required />
+      <button class="button button-primary" type="submit">搜索</button>
+    </form>
+    <noscript><p>启用 JavaScript 后即可搜索。也可以浏览<a href="/archive/">归档</a>。</p></noscript>
+    <p id="search-status" class="muted" role="status"></p>
+    <ol id="search-results" class="search-results"></ol>
+    <button id="search-more" class="button" type="button" hidden>显示更多结果</button>
+  </div>
+</BaseLayout>
+
+<script>
+  interface Result {
+    data(): Promise<{ url: string; excerpt: string; meta: { title: string; section?: string } }>;
+  }
+  interface Pagefind {
+    search(query: string): Promise<{ results: Result[] }>;
+  }
+
+  const form = document.querySelector<HTMLFormElement>('.search-form')!;
+  const input = document.querySelector<HTMLInputElement>('#search-query')!;
+  const status = document.getElementById('search-status')!;
+  const list = document.getElementById('search-results')!;
+  const more = document.querySelector<HTMLButtonElement>('#search-more')!;
+  const pageSize = 12;
+  let engine: Promise<Pagefind> | undefined;
+  let results: Result[] = [];
+  let searchId = 0;
+
+  function excerptAsNodes(excerpt: string) {
+    const excerptHtml = new DOMParser().parseFromString(excerpt, 'text/html');
+    return Array.from(excerptHtml.body.childNodes, (node) => {
+      if (node.nodeName !== 'MARK') return document.createTextNode(node.textContent ?? '');
+      const mark = document.createElement('mark');
+      mark.textContent = node.textContent;
+      return mark;
+    });
+  }
+
+  async function showMore() {
+    const current = searchId;
+    const start = list.children.length;
+    more.disabled = true;
+    try {
+      const items = await Promise.all(results.slice(start, start + pageSize).map((result) => result.data()));
+      if (current !== searchId) return;
+      for (const item of items) {
+        const row = document.createElement('li');
+        const link = document.createElement('a');
+        const target = new URL(item.url, location.origin);
+        if (target.origin !== location.origin) continue;
+        link.href = target.pathname + target.hash;
+        link.textContent = item.meta.title;
+        const section = document.createElement('span');
+        section.className = 'small muted';
+        section.textContent = item.meta.section ?? '';
+        const summary = document.createElement('p');
+        summary.append(...excerptAsNodes(item.excerpt));
+        row.append(section, link, summary);
+        list.append(row);
+      }
+      more.hidden = start + pageSize >= results.length;
+    } catch {
+      if (current === searchId) status.textContent = '结果加载失败，请重试。';
+    } finally {
+      if (current === searchId) more.disabled = false;
+    }
+  }
+
+  async function search(query: string) {
+    const current = ++searchId;
+    list.replaceChildren();
+    more.hidden = true;
+    if (!query) {
+      status.textContent = '';
+      return;
+    }
+    status.textContent = '正在搜索…';
+    try {
+      const info = await fetch('/pagefind/status.json');
+      if (!info.ok) throw new Error('Pagefind manifest is unavailable');
+      const { indexed } = await info.json();
+      if (current !== searchId) return;
+      if (indexed === 0) {
+        status.textContent = '暂无可搜索的内容。';
+        return;
+      }
+      const path = '/pagefind/pagefind.js';
+      const pagefind = await (engine ??= import(/* @vite-ignore */ path));
+      const response = await pagefind.search(query);
+      if (current !== searchId) return;
+      results = response.results;
+      status.textContent = results.length ? `找到 ${results.length} 条结果` : '没有找到匹配内容。试试更短的关键词。';
+      if (results.length) await showMore();
+    } catch {
+      if (current !== searchId) return;
+      engine = undefined;
+      status.textContent = import.meta.env.DEV ? '请先构建站点，再使用预览服务搜索。' : '搜索索引暂时无法加载。';
+    }
+  }
+
+  function restoreQuery() {
+    input.value = new URL(location.href).searchParams.get('q') ?? '';
+    void search(input.value.trim());
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = input.value.trim();
+    const url = new URL(location.href);
+    if (query) url.searchParams.set('q', query);
+    else url.searchParams.delete('q');
+    if (url.href !== location.href) history.pushState(null, '', url);
+    void search(query);
+  });
+  more.addEventListener('click', () => void showMore());
+  window.addEventListener('popstate', restoreQuery);
+  restoreQuery();
+</script>
